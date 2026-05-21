@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Gift, Wifi, WifiOff } from "lucide-react";
+import { LogOut, Gift, Layers, Wifi, WifiOff } from "lucide-react";
 import { useProducer } from "@/context/ProducerContext";
 import { useStatsWebSocket } from "@/hooks/useStatsWebSocket";
 
@@ -112,13 +112,22 @@ export default function PainelPage() {
           <p className="text-center text-brand-300">Conectando métricas...</p>
         )}
 
-        <Link
-          href="/cortesia"
-          className="mt-8 flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 font-semibold text-white"
-        >
-          <Gift className="h-5 w-5" />
-          Cortesias e envio em massa
-        </Link>
+        <div className="mt-8 space-y-3">
+          <Link
+            href="/lotes"
+            className="flex items-center justify-center gap-2 rounded-xl border border-brand-600 bg-brand-900/60 py-3.5 font-semibold text-white"
+          >
+            <Layers className="h-5 w-5" />
+            Virada de lotes
+          </Link>
+          <Link
+            href="/cortesia"
+            className="flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 font-semibold text-white"
+          >
+            <Gift className="h-5 w-5" />
+            Cortesias e envio em massa
+          </Link>
+        </div>
       </main>
     </div>
   );
