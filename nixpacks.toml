@@ -1,0 +1,6 @@
+# EasyPanel / Nixpacks — Next.js 16 exige Node >= 20.9
+[variables]
+NIXPACKS_NODE_VERSION = "22"
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
