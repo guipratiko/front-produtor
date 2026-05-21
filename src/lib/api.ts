@@ -2,6 +2,12 @@ const TOKEN_KEY = "uai-produtor-token";
 const DEFAULT_API = "http://localhost:3350";
 const FETCH_TIMEOUT_MS = 12_000;
 
+function secureForPage(url: string): string {
+  if (typeof window === "undefined") return url;
+  if (window.location.protocol !== "https:") return url;
+  return url.replace(/^http:\/\//, "https://").replace(/^ws:\/\//, "wss://");
+}
+
 export function getApiUrl(): string {
   const envUrl = (process.env.NEXT_PUBLIC_PRODUTOR_API_URL ?? DEFAULT_API).replace(/\/$/, "");
   if (typeof window === "undefined") return envUrl;
@@ -13,19 +19,20 @@ export function getApiUrl(): string {
     if (apiIsLocal && !pageIsLocal) {
       api.hostname = pageHost;
       api.port = "3350";
-      return api.origin;
+      return secureForPage(api.origin);
     }
   } catch {
     /* */
   }
-  return envUrl;
+  return secureForPage(envUrl);
 }
 
 export function getWsUrl(): string {
   const env = process.env.NEXT_PUBLIC_PRODUTOR_WS_URL;
-  if (env) return env;
-  const api = getApiUrl();
-  return api.replace(/^http/, "ws") + "/ws";
+  const base =
+    env?.replace(/\/$/, "") ??
+    `${getApiUrl().replace(/^https/, "wss").replace(/^http/, "ws")}/ws`;
+  return secureForPage(base);
 }
 
 export function getToken(): string | null {
