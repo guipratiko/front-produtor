@@ -1,0 +1,144 @@
+"use client";
+
+import { useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { LogOut, Gift, Wifi, WifiOff } from "lucide-react";
+import { useProducer } from "@/context/ProducerContext";
+import { useStatsWebSocket } from "@/hooks/useStatsWebSocket";
+
+function formatMoney(n: number) {
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export default function PainelPage() {
+  const router = useRouter();
+  const { isReady, isAuthenticated, producer, selectedEventId, setSelectedEventId, logout } =
+    useProducer();
+  const { stats, connected } = useStatsWebSocket(selectedEventId);
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (!isAuthenticated) router.replace("/login");
+  }, [isReady, isAuthenticated, router]);
+
+  if (!isReady || !producer) {
+    return <div className="flex min-h-dvh items-center justify-center text-brand-100">Carregando...</div>;
+  }
+
+  const event = producer.events.find((e) => e.id === selectedEventId);
+
+  return (
+    <div className="min-h-dvh pb-8">
+      <header className="border-b border-brand-800 bg-brand-950/95 px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-brand-300">{producer.name}</p>
+            <h1 className="truncate text-lg font-bold text-white">Painel do produtor</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {connected ? (
+              <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+                <Wifi className="h-3.5 w-3.5" /> ao vivo
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[10px] text-amber-400">
+                <WifiOff className="h-3.5 w-3.5" /> reconectando
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
+              className="rounded-lg p-2 text-brand-200 hover:bg-brand-800"
+              aria-label="Sair"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        {producer.events.length > 1 && (
+          <select
+            value={selectedEventId ?? ""}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+            className="mt-2 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
+          >
+            {producer.events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.title}
+              </option>
+            ))}
+          </select>
+        )}
+        {event && <p className="mt-1 truncate text-xs text-brand-300">{event.venue}</p>}
+      </header>
+
+      <main className="mx-auto max-w-lg px-4 py-6">
+        {stats ? (
+          <>
+            <h2 className="text-sm font-semibold text-brand-200">{stats.eventTitle}</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <StatCard label="Emitidos" value={String(stats.total)} />
+              <StatCard label="Validados" value={String(stats.checkedIn)} highlight />
+              <StatCard label="Pendentes" value={String(stats.pending)} />
+              <StatCard label="Vendidos" value={String(stats.sold)} />
+              <StatCard label="Cortesias" value={String(stats.courtesy)} />
+              <StatCard label="Suas cortesias" value={String(stats.myCourtesyIssued)} />
+            </div>
+            <section className="mt-6 rounded-2xl border border-brand-700 bg-brand-900/50 p-4">
+              <h3 className="text-sm font-bold text-white">Financeiro (relatório)</h3>
+              <dl className="mt-3 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-brand-300">Bilheteria vendida</dt>
+                  <dd>{formatMoney(stats.grossSales)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-brand-300">Taxas ao comprador</dt>
+                  <dd>{formatMoney(stats.buyerFees)}</dd>
+                </div>
+                <div className="flex justify-between font-semibold text-amber-200">
+                  <dt>Comissão Uai ({stats.platformFeePercent}%)</dt>
+                  <dd>{formatMoney(stats.platformFee)}</dd>
+                </div>
+              </dl>
+            </section>
+            <p className="mt-4 text-center text-[10px] text-brand-400">
+              Atualizado {new Date(stats.updatedAt).toLocaleTimeString("pt-BR")}
+            </p>
+          </>
+        ) : (
+          <p className="text-center text-brand-300">Conectando métricas...</p>
+        )}
+
+        <Link
+          href="/cortesia"
+          className="mt-8 flex items-center justify-center gap-2 rounded-xl bg-brand-500 py-3.5 font-semibold text-white"
+        >
+          <Gift className="h-5 w-5" />
+          Cortesias e envio em massa
+        </Link>
+      </main>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-4 ${highlight ? "border-emerald-500/50 bg-emerald-950/40" : "border-brand-700 bg-brand-950/60"}`}
+    >
+      <p className="text-[10px] uppercase tracking-wide text-brand-400">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+    </div>
+  );
+}

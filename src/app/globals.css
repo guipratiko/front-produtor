@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --brand-50: #faf7fc;
+  --brand-100: #f3ebf9;
+  --brand-300: #ddb3f0;
+  --brand-400: #c98ae8;
+  --brand-500: #c06ee2;
+  --brand-600: #a94fd4;
+  --brand-700: #8b3ab8;
+  --brand-800: #6d2d96;
+  --brand-900: #3d1860;
+  --brand-950: #2d1045;
+}
+
+@theme inline {
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+}
+
+html,
+body {
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: var(--brand-950);
+  color: #f8fafc;
+  overscroll-behavior: none;
+}
