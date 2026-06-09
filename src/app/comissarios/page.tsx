@@ -13,7 +13,14 @@ type CommissionerRow = {
   id: string;
   code: string;
   active: boolean;
+  validFrom: string | null;
   validUntil: string | null;
+  discountPercent: number;
+  maxUses: number;
+  usedCount: number;
+  maxUsesPerBuyer: number;
+  discountTicketTierIds: string[];
+  discountTicketTierNames: string[];
   courtesyMode: "none" | "immediate" | "on_goal";
   courtesyGoal: number | null;
   courtesyTicketTierId: string | null;
@@ -28,7 +35,12 @@ type CommissionerRow = {
 
 const emptyForm = {
   email: "",
+  validFrom: "",
   validUntil: "",
+  discountPercent: "0",
+  maxUses: "50",
+  maxUsesPerBuyer: "4",
+  discountTicketTierIds: [] as string[],
   courtesyMode: "none" as "none" | "immediate" | "on_goal",
   courtesyGoal: "3",
   courtesyTicketTierId: "",
@@ -103,9 +115,31 @@ export default function ComissariosPage() {
     }
   }, [isAuthenticated, selectedEventId, load]);
 
+  const toggleDiscountTier = (id: string) => {
+    setForm((prev) => ({
+      ...prev,
+      discountTicketTierIds: prev.discountTicketTierIds.includes(id)
+        ? prev.discountTicketTierIds.filter((x) => x !== id)
+        : [...prev.discountTicketTierIds, id],
+    }));
+  };
+
+  const selectAllDiscountTiers = () => {
+    setForm((prev) => ({
+      ...prev,
+      discountTicketTierIds: tickets.map((t) => t.id),
+    }));
+  };
+
+  const hasDiscount = Number(form.discountPercent) > 0;
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId) return;
+    if (hasDiscount && form.discountTicketTierIds.length === 0) {
+      setError("Selecione ao menos um tipo de ingresso para o desconto");
+      return;
+    }
     setError(null);
     setSaving(true);
     try {
@@ -113,7 +147,12 @@ export default function ComissariosPage() {
         method: "POST",
         body: JSON.stringify({
           email: form.email.trim().toLowerCase(),
+          validFrom: form.validFrom || null,
           validUntil: form.validUntil || null,
+          discountPercent: Number(form.discountPercent),
+          maxUses: hasDiscount ? Number(form.maxUses) : undefined,
+          maxUsesPerBuyer: hasDiscount ? Number(form.maxUsesPerBuyer) : undefined,
+          discountTicketTierIds: hasDiscount ? form.discountTicketTierIds : [],
           courtesyMode: form.courtesyMode,
           courtesyGoal:
             form.courtesyMode === "on_goal" ? Number(form.courtesyGoal) : null,
@@ -214,15 +253,104 @@ export default function ComissariosPage() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-semibold text-white">Válido de (opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={form.validFrom}
+                  onChange={(e) => setForm({ ...form, validFrom: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-white">Válido até (opcional)</label>
+                <input
+                  type="datetime-local"
+                  value={form.validUntil}
+                  onChange={(e) => setForm({ ...form, validUntil: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="text-sm font-semibold text-white">Validade do link (opcional)</label>
+              <label className="text-sm font-semibold text-white">
+                Desconto no link (0% = só rastreio)
+              </label>
               <input
-                type="datetime-local"
-                value={form.validUntil}
-                onChange={(e) => setForm({ ...form, validUntil: e.target.value })}
+                type="number"
+                min={0}
+                max={20}
+                step={0.5}
+                value={form.discountPercent}
+                onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
               />
             </div>
+
+            {hasDiscount && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-semibold text-white">Usos do desconto</label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={form.maxUses}
+                      onChange={(e) => setForm({ ...form, maxUses: e.target.value })}
+                      className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-white">Limite por comprador</label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={form.maxUsesPerBuyer}
+                      onChange={(e) =>
+                        setForm({ ...form, maxUsesPerBuyer: e.target.value })
+                      }
+                      className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
+                    />
+                  </div>
+                </div>
+                <fieldset>
+                  <div className="flex items-center justify-between">
+                    <legend className="text-sm font-semibold text-white">
+                      Tipos com desconto
+                    </legend>
+                    <button
+                      type="button"
+                      onClick={selectAllDiscountTiers}
+                      className="text-xs text-brand-300 underline"
+                    >
+                      Selecionar todos
+                    </button>
+                  </div>
+                  <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto">
+                    {tickets.length === 0 ? (
+                      <li className="p-2 text-sm text-brand-400">Nenhum lote ativo à venda.</li>
+                    ) : (
+                      tickets.map((t) => (
+                        <li key={t.id}>
+                          <label className="flex cursor-pointer items-center gap-2 rounded p-2 text-sm text-brand-100 hover:bg-brand-900">
+                            <input
+                              type="checkbox"
+                              checked={form.discountTicketTierIds.includes(t.id)}
+                              onChange={() => toggleDiscountTier(t.id)}
+                            />
+                            {t.name} — R$ {t.price.toFixed(2)}
+                          </label>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </fieldset>
+              </>
+            )}
 
             <div>
               <label className="text-sm font-semibold text-white">Cortesia (opcional)</label>
@@ -340,12 +468,28 @@ export default function ComissariosPage() {
                 </dl>
 
                 <p className="mt-3 text-xs text-brand-400">
+                  {row.discountPercent > 0
+                    ? `Desconto ${row.discountPercent}% · ${row.usedCount}/${row.maxUses} usos`
+                    : "Sem desconto (só rastreio)"}
+                </p>
+                {row.discountPercent > 0 && row.discountTicketTierNames.length > 0 && (
+                  <p className="mt-1 text-xs text-brand-400">
+                    Em: {row.discountTicketTierNames.join(", ")}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-brand-400">
                   {courtesyLabel(row.courtesyMode, row.courtesyGoal)}
                   {row.courtesyIssuedAt ? " · cortesia emitida" : ""}
                 </p>
-                {row.validUntil && (
+                {(row.validFrom || row.validUntil) && (
                   <p className="mt-1 text-xs text-brand-400">
-                    Válido até {new Date(row.validUntil).toLocaleString("pt-BR")}
+                    {row.validFrom
+                      ? `De ${new Date(row.validFrom).toLocaleString("pt-BR")}`
+                      : ""}
+                    {row.validFrom && row.validUntil ? " · " : ""}
+                    {row.validUntil
+                      ? `Até ${new Date(row.validUntil).toLocaleString("pt-BR")}`
+                      : ""}
                   </p>
                 )}
 
