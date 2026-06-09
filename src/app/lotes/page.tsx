@@ -35,7 +35,7 @@ const statusLabel: Record<LotRow["status"], string> = {
 function LotCard({
   lot,
   onEdit,
-  onCancel,
+  onCancelLot,
   editingId,
   form,
   setForm,
@@ -330,7 +330,7 @@ export default function LotesPage() {
                   ))}
                 </ul>
               </section>
-            )}
+            ))}
 
             {data.parallel.length === 0 && data.chains.length === 0 && (
               <p className="text-brand-300">Nenhum tipo de ingresso neste evento.</p>
