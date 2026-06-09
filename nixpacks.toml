@@ -4,3 +4,7 @@ NIXPACKS_NODE_VERSION = "22"
 
 [phases.setup]
 nixPkgs = ["nodejs_22"]
+
+[phases.build]
+# Evita mount de cache em tsconfig.tsbuildinfo (arquivo) — conflito no Docker
+cacheDirectories = [".next/cache", "node_modules/.cache"]
