@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Gift, Layers, Tag, Wifi, WifiOff } from "lucide-react";
+import { LogOut, Gift, Layers, Tag, UserPlus, Wifi, WifiOff } from "lucide-react";
 import { useProducer } from "@/context/ProducerContext";
 import { useStatsWebSocket } from "@/hooks/useStatsWebSocket";
 
@@ -136,6 +136,13 @@ export default function PainelPage() {
           >
             <Tag className="h-5 w-5" />
             Cupons de desconto
+          </Link>
+          <Link
+            href="/comissarios"
+            className="flex items-center justify-center gap-2 rounded-xl border border-brand-600 bg-brand-900/60 py-3.5 font-semibold text-white"
+          >
+            <UserPlus className="h-5 w-5" />
+            Comissários
           </Link>
           <Link
             href="/cortesia"
