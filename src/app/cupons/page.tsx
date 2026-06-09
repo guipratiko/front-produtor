@@ -35,7 +35,7 @@ const emptyForm = {
 
 export default function CuponsPage() {
   const router = useRouter();
-  const { isReady, isAuthenticated, selectedEventId } = useProducer();
+  const { isReady, isAuthenticated, producer, selectedEventId, setSelectedEventId } = useProducer();
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [tickets, setTickets] = useState<TicketOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,8 @@ export default function CuponsPage() {
     setLoading(true);
     try {
       const [couponsRes, ticketsRes] = await Promise.all([
-        api<{ coupons: CouponRow[] }>(`/events/${selectedEventId}/coupons`),
-        api<{ tickets: TicketOption[] }>(`/events/${selectedEventId}/tickets`),
+        api<{ coupons: CouponRow[] }>(`/producer/events/${selectedEventId}/coupons`),
+        api<{ tickets: TicketOption[] }>(`/producer/events/${selectedEventId}/tickets`),
       ]);
       setCoupons(couponsRes.coupons);
       setTickets(ticketsRes.tickets);
@@ -65,7 +65,10 @@ export default function CuponsPage() {
   }, [isReady, isAuthenticated, router]);
 
   useEffect(() => {
-    if (isAuthenticated && selectedEventId) void load();
+    if (isAuthenticated && selectedEventId) {
+      setForm(emptyForm);
+      void load();
+    }
   }, [isAuthenticated, selectedEventId, load]);
 
   const toggleTier = (id: string) => {
@@ -90,7 +93,7 @@ export default function CuponsPage() {
     setError(null);
     setSaving(true);
     try {
-      await api(`/events/${selectedEventId}/coupons`, {
+      await api(`/producer/events/${selectedEventId}/coupons`, {
         method: "POST",
         body: JSON.stringify({
           code: form.code,
@@ -114,7 +117,7 @@ export default function CuponsPage() {
 
   const toggleActive = async (coupon: CouponRow) => {
     if (!selectedEventId) return;
-    await api(`/events/${selectedEventId}/coupons/${coupon.id}`, {
+    await api(`/producer/events/${selectedEventId}/coupons/${coupon.id}`, {
       method: "PUT",
       body: JSON.stringify({ active: !coupon.active }),
     });
@@ -124,7 +127,7 @@ export default function CuponsPage() {
   const handleDelete = async (coupon: CouponRow) => {
     if (!selectedEventId) return;
     if (!window.confirm(`Excluir cupom ${coupon.code}?`)) return;
-    await api(`/events/${selectedEventId}/coupons/${coupon.id}`, { method: "DELETE" });
+    await api(`/producer/events/${selectedEventId}/coupons/${coupon.id}`, { method: "DELETE" });
     await load();
   };
 
@@ -136,6 +139,19 @@ export default function CuponsPage() {
         </Link>
         <h1 className="mt-2 text-lg font-bold text-white">Cupons de desconto</h1>
         <p className="text-xs text-brand-300">Até 20% — desconto sai do seu repasse</p>
+        {producer && producer.events.length > 0 && (
+          <select
+            value={selectedEventId ?? ""}
+            onChange={(e) => setSelectedEventId(e.target.value || null)}
+            className="mt-3 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
+          >
+            {producer.events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.title}
+              </option>
+            ))}
+          </select>
+        )}
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-6">
@@ -229,18 +245,24 @@ export default function CuponsPage() {
                     </button>
                   </div>
                   <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-                    {tickets.map((t) => (
-                      <li key={t.id}>
-                        <label className="flex cursor-pointer items-center gap-2 rounded p-2 text-sm text-brand-100 hover:bg-brand-900">
-                          <input
-                            type="checkbox"
-                            checked={form.ticketTierIds.includes(t.id)}
-                            onChange={() => toggleTier(t.id)}
-                          />
-                          {t.name} — R$ {t.price.toFixed(2)}
-                        </label>
+                    {tickets.length === 0 ? (
+                      <li className="p-2 text-sm text-brand-400">
+                        Nenhum tipo de ingresso neste evento.
                       </li>
-                    ))}
+                    ) : (
+                      tickets.map((t) => (
+                        <li key={t.id}>
+                          <label className="flex cursor-pointer items-center gap-2 rounded p-2 text-sm text-brand-100 hover:bg-brand-900">
+                            <input
+                              type="checkbox"
+                              checked={form.ticketTierIds.includes(t.id)}
+                              onChange={() => toggleTier(t.id)}
+                            />
+                            {t.name} — R$ {t.price.toFixed(2)}
+                          </label>
+                        </li>
+                      ))
+                    )}
                   </ul>
                 </fieldset>
                 {error && <p className="text-sm text-red-400">{error}</p>}
