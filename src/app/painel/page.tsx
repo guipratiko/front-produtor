@@ -128,11 +128,13 @@ export default function PainelPage() {
                     title="Vendas por dia"
                     subtitle="Últimos 30 dias · data do pagamento"
                     rows={stats.salesByDay}
+                    periodType="day"
                   />
                   <SalesPeriodChart
                     title="Vendas por mês"
                     subtitle="Últimos 12 meses · bilheteria do evento"
                     rows={stats.salesByMonth}
+                    periodType="month"
                   />
                 </div>
               )}
