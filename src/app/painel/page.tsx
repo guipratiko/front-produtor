@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Gift, Layers, Tag, UserPlus, Wifi, WifiOff } from "lucide-react";
+import { BarChart3, LogOut, Gift, Layers, Tag, UserPlus, Wifi, WifiOff } from "lucide-react";
 import { useProducer } from "@/context/ProducerContext";
 import { useStatsWebSocket } from "@/hooks/useStatsWebSocket";
+import { SalesPeriodChart } from "@/components/sales/SalesPeriodChart";
 
 function formatMoney(n: number) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -114,6 +115,20 @@ export default function PainelPage() {
                 </div>
               </dl>
             </section>
+            {stats.salesByDay && stats.salesByMonth && (
+              <div className="mt-6 space-y-4">
+                <SalesPeriodChart
+                  title="Vendas por dia"
+                  subtitle="Últimos 30 dias · data do pagamento"
+                  rows={stats.salesByDay}
+                />
+                <SalesPeriodChart
+                  title="Vendas por mês"
+                  subtitle="Últimos 12 meses · bilheteria do evento"
+                  rows={stats.salesByMonth}
+                />
+              </div>
+            )}
             <p className="mt-4 text-center text-[10px] text-brand-400">
               Atualizado {new Date(stats.updatedAt).toLocaleTimeString("pt-BR")}
             </p>
@@ -123,6 +138,13 @@ export default function PainelPage() {
         )}
 
         <div className="mt-8 space-y-3">
+          <Link
+            href="/relatorios"
+            className="flex items-center justify-center gap-2 rounded-xl border border-brand-600 bg-brand-900/60 py-3.5 font-semibold text-white"
+          >
+            <BarChart3 className="h-5 w-5" />
+            Comparecimento
+          </Link>
           <Link
             href="/lotes"
             className="flex items-center justify-center gap-2 rounded-xl border border-brand-600 bg-brand-900/60 py-3.5 font-semibold text-white"
