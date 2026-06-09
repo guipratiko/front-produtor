@@ -37,3 +37,8 @@ body {
   color: #f8fafc;
   overscroll-behavior: none;
 }
+
+select option {
+  background-color: var(--brand-900);
+  color: #f8fafc;
+}

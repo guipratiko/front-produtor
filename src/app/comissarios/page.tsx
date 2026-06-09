@@ -56,22 +56,40 @@ export default function ComissariosPage() {
   const [saving, setSaving] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const loadTickets = useCallback(async () => {
+    if (!selectedEventId) return;
+    try {
+      const ticketsRes = await api<{ tickets: TicketOption[] }>(
+        `/producer/events/${selectedEventId}/tickets`,
+      );
+      setTickets(ticketsRes.tickets);
+      if (ticketsRes.tickets[0]) {
+        setForm((prev) =>
+          prev.courtesyTicketTierId
+            ? prev
+            : { ...prev, courtesyTicketTierId: ticketsRes.tickets[0].id },
+        );
+      }
+    } catch {
+      setTickets([]);
+    }
+  }, [selectedEventId]);
+
   const load = useCallback(async () => {
     if (!selectedEventId) return;
     setLoading(true);
     try {
-      const [commRes, ticketsRes] = await Promise.all([
-        api<{ commissioners: CommissionerRow[] }>(
-          `/producer/events/${selectedEventId}/commissioners`,
-        ),
-        api<{ tickets: TicketOption[] }>(`/producer/events/${selectedEventId}/tickets`),
-      ]);
+      const commRes = await api<{ commissioners: CommissionerRow[] }>(
+        `/producer/events/${selectedEventId}/commissioners`,
+      );
       setCommissioners(commRes.commissioners);
-      setTickets(ticketsRes.tickets);
+    } catch {
+      setCommissioners([]);
     } finally {
       setLoading(false);
     }
-  }, [selectedEventId]);
+    await loadTickets();
+  }, [selectedEventId, loadTickets]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -144,30 +162,32 @@ export default function ComissariosPage() {
   return (
     <div className="min-h-dvh pb-8">
       <header className="border-b border-brand-800 bg-brand-950/95 px-4 py-3">
-        <Link href="/painel" className="inline-flex items-center gap-1 text-sm text-brand-300">
-          <ArrowLeft className="h-4 w-4" />
-          Painel
-        </Link>
-        <h1 className="mt-2 text-lg font-bold text-white">Comissários</h1>
-        <p className="text-xs text-brand-300">
-          Link exclusivo por pessoa — vendas confirmadas são atribuídas ao comissário
-        </p>
-        {producer && producer.events.length > 0 && (
-          <select
-            value={selectedEventId ?? ""}
-            onChange={(e) => setSelectedEventId(e.target.value || null)}
-            className="mt-3 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
-          >
-            {producer.events.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.title}
-              </option>
-            ))}
-          </select>
-        )}
+        <div className="mx-auto max-w-lg">
+          <Link href="/painel" className="inline-flex items-center gap-1 text-sm text-brand-300">
+            <ArrowLeft className="h-4 w-4" />
+            Painel
+          </Link>
+          <h1 className="mt-2 text-lg font-bold text-white">Comissários</h1>
+          <p className="text-xs text-brand-300">
+            Link exclusivo por pessoa — vendas confirmadas são atribuídas ao comissário
+          </p>
+          {producer && producer.events.length > 0 && (
+            <select
+              value={selectedEventId ?? ""}
+              onChange={(e) => setSelectedEventId(e.target.value || null)}
+              className="mt-3 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
+            >
+              {producer.events.map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </header>
 
-      <main className="px-4 py-6">
+      <main className="mx-auto max-w-lg px-4 py-6">
         <button
           type="button"
           onClick={() => setShowForm((v) => !v)}
@@ -245,15 +265,23 @@ export default function ComissariosPage() {
                   onChange={(e) =>
                     setForm({ ...form, courtesyTicketTierId: e.target.value })
                   }
-                  className="mt-1 w-full rounded-lg border border-brand-700 bg-brand-950 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-xl border border-brand-700 bg-brand-900 px-3 py-2.5 text-sm text-white"
                 >
-                  <option value="">Selecione</option>
-                  {tickets.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} — R$ {t.price.toFixed(2)}
-                    </option>
-                  ))}
+                  {tickets.length === 0 ? (
+                    <option value="">Nenhum lote ativo à venda</option>
+                  ) : (
+                    tickets.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} — R$ {t.price.toFixed(2)}
+                      </option>
+                    ))
+                  )}
                 </select>
+                {tickets.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-400">
+                    Ative um lote à venda em Virada de lotes para emitir cortesia.
+                  </p>
+                )}
               </div>
             )}
 
