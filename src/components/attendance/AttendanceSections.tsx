@@ -130,25 +130,27 @@ export function AttendanceScopeView({
         </div>
       </div>
 
-      <Section title="Por tipo de ingresso" rows={scope.byTicketType} maxTotal={maxType} variant={variant} />
-      <Section title="Por lote" rows={scope.byLot} maxTotal={maxLot} variant={variant} />
-      <Section title="Por meio de pagamento" rows={scope.byPayment} maxTotal={maxPay} variant={variant} />
-      <Section title="Por gênero" rows={scope.byGender} maxTotal={maxGender} variant={variant} />
-      <Section title="Por cidade (top 10)" rows={scope.byCity} maxTotal={maxCity} variant={variant} />
-      <Section title="Por estado (top 10)" rows={scope.byState} maxTotal={maxState} variant={variant} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Section title="Por tipo de ingresso" rows={scope.byTicketType} maxTotal={maxType} variant={variant} />
+        <Section title="Por lote" rows={scope.byLot} maxTotal={maxLot} variant={variant} />
+        <Section title="Por meio de pagamento" rows={scope.byPayment} maxTotal={maxPay} variant={variant} />
+        <Section title="Por gênero" rows={scope.byGender} maxTotal={maxGender} variant={variant} />
+        <Section title="Por cidade (top 10)" rows={scope.byCity} maxTotal={maxCity} variant={variant} />
+        <Section title="Por estado (top 10)" rows={scope.byState} maxTotal={maxState} variant={variant} />
 
-      <section className="rounded-xl border border-brand-700 bg-brand-900/40 p-4">
-        <h3 className="text-sm font-bold text-white">Validações por horário (30 min)</h3>
-        {scope.byCheckInHour.length === 0 ? (
-          <p className="mt-2 text-xs text-brand-400">Nenhuma validação registrada</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {scope.byCheckInHour.map((row) => (
-              <HourBar key={row.label} {...row} maxCount={maxHour} />
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="rounded-xl border border-brand-700 bg-brand-900/40 p-4 lg:col-span-2">
+          <h3 className="text-sm font-bold text-white">Validações por horário (30 min)</h3>
+          {scope.byCheckInHour.length === 0 ? (
+            <p className="mt-2 text-xs text-brand-400">Nenhuma validação registrada</p>
+          ) : (
+            <ul className="mt-3 grid gap-3 lg:grid-cols-2">
+              {scope.byCheckInHour.map((row) => (
+                <HourBar key={row.label} {...row} maxCount={maxHour} />
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

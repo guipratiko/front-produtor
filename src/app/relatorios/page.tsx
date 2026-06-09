@@ -31,7 +31,7 @@ export default function RelatoriosPage() {
   return (
     <div className="min-h-dvh pb-10">
       <header className="border-b border-brand-800 bg-brand-950/95 px-4 py-3">
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-6xl">
           <Link href="/painel" className="inline-flex items-center gap-1 text-sm text-brand-300">
             <ArrowLeft className="h-4 w-4" />
             Painel
@@ -55,7 +55,7 @@ export default function RelatoriosPage() {
             <select
               value={selectedEventId ?? ""}
               onChange={(e) => setSelectedEventId(e.target.value || null)}
-              className="mt-3 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white"
+              className="mt-3 w-full rounded-lg border border-brand-700 bg-brand-900 px-3 py-2 text-sm text-white lg:max-w-md"
             >
               {producer.events.map((ev) => (
                 <option key={ev.id} value={ev.id}>
@@ -67,12 +67,12 @@ export default function RelatoriosPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg px-4 py-6">
+      <main className="mx-auto max-w-lg px-4 py-6 lg:max-w-6xl">
         {!attendance || !scope ? (
           <p className="text-center text-sm text-brand-300">Conectando relatório...</p>
         ) : (
           <>
-            <div className="flex gap-2">
+            <div className="flex gap-2 lg:max-w-md">
               <button
                 type="button"
                 onClick={() => setTab("sale")}
@@ -93,18 +93,18 @@ export default function RelatoriosPage() {
               </button>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
               <AttendanceScopeView scope={scope} />
+
+              <div className="mt-8 lg:mt-0">
+                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-amber-300">
+                  Cortesias (destaque)
+                </h2>
+                <AttendanceScopeView scope={attendance.courtesy} variant="courtesy" />
+              </div>
             </div>
 
-            <div className="mt-8">
-              <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-amber-300">
-                Cortesias (destaque)
-              </h2>
-              <AttendanceScopeView scope={attendance.courtesy} variant="courtesy" />
-            </div>
-
-            <p className="mt-6 text-center text-[10px] text-brand-400">
+            <p className="mt-6 text-center text-[10px] text-brand-400 lg:mt-8">
               Atualizado{" "}
               {new Date(attendance.updatedAt).toLocaleTimeString("pt-BR")}
             </p>
