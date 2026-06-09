@@ -101,6 +101,8 @@ export type EventStats = {
   buyerFees: number;
   platformFee: number;
   platformFeePercent: number;
+  couponDiscounts?: number;
+  producerNet?: number;
   myCourtesyIssued: number;
   myCourtesyBatches: number;
   myCourtesyTotal: number;
